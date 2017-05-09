@@ -58,7 +58,7 @@ void TaskScheduler::run(void)
    {
       currentTaskPtr = &ts_taskBlockPtr[i];
       
-      if(currentTaskPtr->state == TASK_IDLE)
+      if(currentTaskPtr->state == TASK_PEND)
       {
          if(currentTaskPtr->timer > 0)
          {
@@ -74,15 +74,20 @@ void TaskScheduler::run(void)
 
          if(currentTaskPtr->timer == 0)
          {
-            currentTaskPtr->state = TASK_READY;
+            currentTaskPtr->state = TASK_RUN;
          }
       }
       
-      if(currentTaskPtr->state == TASK_READY)
+      if(currentTaskPtr->state == TASK_RUN)
       {
          // task gets run here...
          currentTaskPtr->funcPtr();
-         currentTaskPtr->state = TASK_IDLE;
+         if(currentTaskPtr->state == TASK_RUN)
+         {
+            // if the current task is still set to run (it did not put
+            // itself to sleep) then it is done running for now.
+            currentTaskPtr->state = TASK_STOP;
+         }
       }
    }
    ts_prevMs = currentMs;
@@ -90,6 +95,10 @@ void TaskScheduler::run(void)
 
 void TaskScheduler::sleep(uint8_t taskId, uint16_t ms)
 {
+   if(ts_taskBlockPtr[taskId].state != TASK_OFF)
+   {
+      ts_taskBlockPtr[taskId].state = TASK_PEND;
+   }
    ts_taskBlockPtr[taskId].timer = ms;
 }
 

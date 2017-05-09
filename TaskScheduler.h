@@ -23,7 +23,7 @@ SOFTWARE.
 
 @file task_scheduler.h
 @license MIT
-@version 2.0.0
+@version 3.0.0
 
 @description Simple Task Scheduler
    This is basically a set of timers and a very simple run-to-completion
@@ -33,7 +33,11 @@ SOFTWARE.
       - 256 tasks
       - 65535 ms max delay
    
-   NOTE: This class only supports one built-in instance (TS).
+   Each task has 4 states:
+   - TASK_OFF - completely disabled and will not run, regardless of its timer
+   - TASK_STOP - task has run to competion and has not been put to sleep
+   - TASK_PEND - pending on its timer (sleeping, waiting for timeout)
+   - TASK_RUN - task is running (or ready to run)
    
    In your program you need to set up a task block array, where each entry is
    the starting parameters for a task. Here is an example of what should be at
@@ -51,8 +55,8 @@ enum
 TaskBlock taskBlock[] = 
 {
    // Entry Point    State     Starting Count
-   {&ledBlinkTask,   TASK_READY, 0},  // LED_BLINK_TASK
-   {&helloWorldTask, TASK_READY, 0}   // HELLO_WORLD_TASK
+   {&ledBlinkTask,   TASK_RUN, 0},  // LED_BLINK_TASK
+   {&helloWorldTask, TASK_RUN, 0}   // HELLO_WORLD_TASK
 };
 
 // The number of tasks (automatically calculated
@@ -80,10 +84,12 @@ loop()
 
 typedef enum
 {
-	TASK_DISABLED,	// inactive
-	TASK_IDLE,	   // active but not running
-	TASK_READY,	   // ready to run (or running)
+   TASK_OFF,      // disabled (will not run)
+   TASK_STOP,     // active but not running
+   TASK_PEND,     // active but pending (sleeping, waiting for timeout)
+   TASK_RUN,      // running (or ready to run)
 } TaskState;
+
 
 typedef void (*TaskFuncPtr)(void);
 
@@ -148,9 +154,9 @@ public:
    /***************************************************************************//**
     * @description Set the task's state.
     *    Normally the scheduler automatically switches the state between
-    *    TASK_IDLE and TASK_READY. But you can manually override what the
+    *    TASK_PEND and TASK_RUN. But you can manually override what the
     *    scheduler is doing or you can disable the task altogether with
-    *    TASK_DISABLE.
+    *    TASK_OFF.
     * @param taskId - the task ID (array entry in the task block)
     * @param newState - new state for the task
     */

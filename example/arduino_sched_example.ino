@@ -22,8 +22,8 @@ static void helloWorldTask(void);
 
 TaskBlock taskBlock[] = 
 {
-   {&ledBlinkTask, TASK_IDLE, 5000},  // LED_BLINK_TASK (start after 5 seconds)
-   {&helloWorldTask, TASK_READY, 0} // HELLO_WORLD_TASK
+   {&ledBlinkTask, TASK_PEND, 5000},   // LED_BLINK_TASK (start after 5 seconds)
+   {&helloWorldTask, TASK_RUN, 0}      // HELLO_WORLD_TASK (start now)
 };
 
 #define TASK_BLOCK_SIZE (sizeof(taskBlock)/sizeof(TaskBlock))
